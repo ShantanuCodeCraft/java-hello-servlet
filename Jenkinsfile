@@ -20,9 +20,9 @@ pipeline{
             }
         }
 
-        stage("deploy-Dev") {
+        stage("deploy") {
             steps{
-                sh "cp target/*.war /home/osboxes/dev-server/webapps/java-servlet.war"
+                sh "cp target/*.war /home/osboxes/server/dev/webapps/java-servlet.war"
             }
         }
 
