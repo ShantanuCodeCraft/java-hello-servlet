@@ -11,7 +11,7 @@ pipeline{
         stage("copy-artifacts"){
             steps{
                 copyArtifacts(
-                    projectName: "Java-servlet-deploy-on-QA", 
+                    projectName: "Java-servlet", 
                     selector: lastSuccessful()
                 )
             }
