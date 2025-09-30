@@ -1,0 +1,26 @@
+pipeline{
+    agent any
+    
+    stages{
+        stage("stage-gate"){
+            steps{
+                input 'proceed to deploy on QA server'
+            }
+        }
+
+        stage("copy-artifacts"){
+            steps{
+                copyArtifacts(
+                    projectName: "Java-servlet-deploy-on-QA", 
+                    selector: lastSuccessful()
+                )
+            }
+        }
+
+        stage("deploy"){
+            steps{
+                sh "cp target/*.war /home/osboxes/server/qa/webapps/java-servlet.war"
+            }
+        }
+    }
+}
