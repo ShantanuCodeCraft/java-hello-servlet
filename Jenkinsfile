@@ -20,6 +20,30 @@ pipeline{
             }
         }
 
+        stage("sonarqube-analysis"){
+            environment {
+                scannerHome = tool 'SonarScanner' // name from Jenkins tools config
+            }
+            steps {
+                withSonarQubeEnv('sonarqube-scanner') {
+                    sh '''${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=myproject \
+                        -Dsonar.sources=src \
+                        -Dsonar.java.binaries=target/classes \
+                        -Dsonar.host.url=http://192.168.1.10:9000 \
+                        -Dsonar.login=$SONAR_AUTH_TOKEN'''
+                }
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage("deploy") {
             steps{
                 sh "cp target/*.war /home/osboxes/server/dev/webapps/java-servlet.war"
