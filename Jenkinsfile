@@ -26,12 +26,9 @@ pipeline{
             }
             steps {
                 withSonarQubeEnv('sonarqube-scanner') {
-                    sh '''${scannerHome}/bin/sonar-scanner \
+                    sh '''mvn sonar:sonar \
                         -Dsonar.projectKey=myproject \
-                        -Dsonar.sources=src \
-                        -Dsonar.java.binaries=target/classes \
-                        -Dsonar.host.url=http://192.168.1.10:9000 \
-                        -Dsonar.login=$SONAR_AUTH_TOKEN'''
+                        -Dsonar.projectName='myproject' '''
                 }
             }
         }
