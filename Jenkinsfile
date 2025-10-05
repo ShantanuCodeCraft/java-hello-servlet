@@ -57,7 +57,7 @@ pipeline{
         stage("Push To Nexus"){
             steps{
                 configFileProvider([configFile(fileId: 'f4783756-8786-49db-a137-0541f27321d7', variable: 'MAVEN_SETTINGS')]) {
-                    sh "mvn clean deploy -s $MAVEN_SETTINGS"
+                    sh "mvn -s $MAVEN_SETTINGS clean deploy -DskipTests"
                 }
             }
         }
