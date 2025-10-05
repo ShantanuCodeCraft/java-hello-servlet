@@ -1,25 +1,34 @@
 pipeline{
     agent any
+
+    
+    parameters {
+        string(name: 'BUILD_ID', defaultValue: '', description: 'Build ID from Dev pipeline')
+    }
+
+    environment {
+        DEPLOY_PATH = "/home/osboxes/server/qa/webapps"
+    }
     
     stages{
-        stage("stage-gate"){
+        stage("Stage Gate"){
             steps{
                 input 'proceed to deploy on QA server'
             }
         }
 
-        stage("copy-artifacts"){
+        stage("Copy Artifacts"){
             steps{
                 copyArtifacts(
                     projectName: "Java-servlet", 
-                    selector: lastSuccessful()
+                    selector: specific("${params.BUILD_ID}")
                 )
             }
         }
 
-        stage("deploy"){
+        stage("Deploy"){
             steps{
-                sh "cp target/*.war /home/osboxes/server/qa/webapps/java-servlet.war"
+                sh "cp target/*.war $DEPLOY_PATH/java-servlet.war"
             }
         }
     }

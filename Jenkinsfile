@@ -5,25 +5,31 @@ pipeline{
         maven "maven-3911"
     }
 
+    environment {
+        DEPLOY_PATH = "/home/osboxes/server/dev/webapps"
+    }
+
+    options {
+        timestamps() 
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+
     stages{
-        stage("build") {
+        stage("Compile") {
             steps{
-                sh "mvn clean package"
-                archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+                sh "mvn clean compile"
             }
         }
 
-        stage("test"){
+        stage("Unit Tests"){
             steps{
                 sh "mvn test"
                 junit 'target/surefire-reports/*.xml'
             }
         }
 
-        stage("sonarqube-analysis"){
-            environment {
-                scannerHome = tool 'SonarScanner' // name from Jenkins tools config
-            }
+        stage("SonarQube Analysis"){
             steps {
                 withSonarQubeEnv('sonarqube-scanner') {
                     sh '''mvn sonar:sonar \
@@ -41,16 +47,32 @@ pipeline{
             }
         }
 
-        stage("deploy") {
+        stage("Build") {
             steps{
-                sh "cp target/*.war /home/osboxes/server/dev/webapps/java-servlet.war"
+                sh "mvn clean package -DskipTests"
+                archiveArtifacts artifacts: 'target/*.war', fingerprint: true
             }
         }
 
-        stage("triger-QA-pipeline"){
+        stage("Push To Nexus"){
+            steps{
+                configFileProvider([configFile(fileId: 'f4783756-8786-49db-a137-0541f27321d7', variable: 'MAVEN_SETTINGS')]) {
+                    sh "mvn clean deploy -s $MAVEN_SETTINGS"
+                }
+            }
+        }
+
+        stage("Deploy") {
+            steps{
+                sh "cp target/*.war $DEPLOY_PATH/java-servlet.war"
+            }
+        }
+
+        stage("Triger QA Pipeline"){
             steps{
                 build job: 'Java-servlet-deploy-on-QA',
                 wait : false
+                parameters: [string(name: 'BUILD_ID', value: "${env.BUILD_ID}")]
             }
         }
     }

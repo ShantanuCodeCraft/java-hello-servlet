@@ -54,4 +54,21 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- === Nexus Repository Configuration === -->
+    <distributionManagement>
+        <!-- Release repository -->
+        <repository>
+            <id>maven-releases</id>
+            <name>maven-releases</name>
+            <url>http://192.168.1.10:8081/repository/maven-releases/</url>
+        </repository>
+
+        <!-- Snapshot repository -->
+        <snapshotRepository>
+            <id>maven-snapshots</id>
+            <name>maven-snapshots</name>
+            <url>http://192.168.1.10:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
