@@ -71,7 +71,7 @@ pipeline{
         stage("Triger QA Pipeline"){
             steps{
                 build job: 'Java-servlet-deploy-on-QA',
-                wait : false
+                wait : false,
                 parameters: [string(name: 'BUILD_ID', value: "${env.BUILD_ID}")]
             }
         }
