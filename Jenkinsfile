@@ -6,7 +6,9 @@ pipeline{
     }
 
     environment {
+        APP_NAME = "java-servlet"
         DEPLOY_PATH = "/home/osboxes/server/dev/webapps"
+        MVANE_SETTINGS_ID = "f4783756-8786-49db-a137-0541f27321d7"
     }
 
     options {
@@ -32,9 +34,9 @@ pipeline{
         stage("SonarQube Analysis"){
             steps {
                 withSonarQubeEnv('sonarqube-scanner') {
-                    sh '''mvn sonar:sonar \
-                        -Dsonar.projectKey=myproject \
-                        -Dsonar.projectName='myproject' '''
+                    sh """mvn sonar:sonar \
+                        -Dsonar.projectKey=${APP_NAME}\
+                        -Dsonar.projectName='${APP_NAME}' """
                 }
             }
         }
@@ -49,22 +51,29 @@ pipeline{
 
         stage("Build") {
             steps{
-                sh "mvn clean package -DskipTests"
+                sh "mvn package -DskipTests"
                 archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+            }
+        }
+
+        stage("OWASP Dependency Check"){
+            steps{
+                dependencyCheck additionalArguments: '--scan target/', odcInstallation: 'dependency-check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
 
         stage("Push To Nexus"){
             steps{
-                configFileProvider([configFile(fileId: 'f4783756-8786-49db-a137-0541f27321d7', variable: 'MAVEN_SETTINGS')]) {
-                    sh "mvn -s $MAVEN_SETTINGS clean deploy -DskipTests"
+                configFileProvider([configFile(fileId: env.MVANE_SETTINGS_ID, variable: 'MAVEN_SETTINGS')]) {
+                    sh "mvn -s $MAVEN_SETTINGS  deploy -DskipTests"
                 }
             }
         }
 
         stage("Deploy") {
             steps{
-                sh "cp target/*.war $DEPLOY_PATH/java-servlet.war"
+                sh "cp target/*.war ${DEPLOY_PATH}/${APP_NAME}.war"
             }
         }
 
